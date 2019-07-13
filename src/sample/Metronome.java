@@ -22,6 +22,7 @@ public class Metronome extends Application {
     @Override
     public void start(Stage stage) {
         AudioClip submarineSound = new AudioClip("https://github.com/opendream/ODOpenAlarm/blob/master/sounds/Morse.aiff?raw=true");
+        AudioClip bottleSound = new AudioClip("https://github.com/opendream/ODOpenAlarm/blob/master/sounds/Pop.aiff?raw=true");
         Label ledLabel = new Label("●");
 
         Timer timer = new Timer();

@@ -27,63 +27,26 @@ public class Metronome2 extends Application {
     int currentTick = -1;
     List<Label> tickLabels;
 
+    AudioClip funkSound = new AudioClip("https://github.com/opendream/ODOpenAlarm/blob/master/sounds/Morse.aiff?raw=true");
+    AudioClip bottleSound = new AudioClip("https://github.com/opendream/ODOpenAlarm/blob/master/sounds/Pop.aiff?raw=true");
+    Label nbOfTicksLabel = new Label("Number of ticks: ");
+    TextField nbOfTicksTextField = new TextField(String.valueOf(nbOfTicks));
+    Label beatsPerMinuteLabel = new Label("Beats per minute: ");
+    TextField beatsPerMinuteTextField = new TextField(String.valueOf(beatsPerMinute));
+    Button controlButton = new Button("Start/Stop");
+    TilePane ticksPane = new TilePane(Orientation.HORIZONTAL);
+
     @Override
     public void start(Stage stage) {
-        AudioClip submarineSound = new AudioClip("https://github.com/opendream/ODOpenAlarm/blob/master/sounds/Morse.aiff?raw=true");
-        AudioClip bottleSound = new AudioClip("https://github.com/opendream/ODOpenAlarm/blob/master/sounds/Bottle.aiff?raw=true");
+        controlButton.setOnMouseClicked(event -> {
+            if (!running) {
+                timer = new Timer();
 
-        Label nbOfTicksLabel = new Label("Number of ticks: ");
-        TextField nbOfTicksTextField = new TextField(String.valueOf(nbOfTicks));
-        Label beatsPerMinuteLabel = new Label("Beats per minute: ");
-        TextField beatsPerMinuteTextField = new TextField(String.valueOf(beatsPerMinute));
-        Button controlButton = new Button("Start/Stop");
-
-        TilePane ticksPane = new TilePane(Orientation.HORIZONTAL);
-
-        controlButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if (!running) {
-                    String nbOfTicksText = nbOfTicksTextField.getText();
-                    nbOfTicks = Integer.parseInt(nbOfTicksText);
-
-                    String beatsPerMinuteText = beatsPerMinuteTextField.getText();
-                    beatsPerMinute = Integer.parseInt(beatsPerMinuteText);
-
-                    tickLabels = new ArrayList<>();
-                    for (int i = 0; i < nbOfTicks; i++) {
-                        tickLabels.add(new Label("●"));
-                    }
-                    ticksPane.getChildren().setAll(tickLabels);
-
-                    timer = new Timer();
-                    timer.scheduleAtFixedRate(new TimerTask() {
-                        @Override
-                        public void run() {
-                            currentTick = (currentTick + 1) % nbOfTicks;
-
-                            for (int i = 0; i < nbOfTicks; i++) {
-                                Label tickLabel = tickLabels.get(i);
-                                if (i <= currentTick) {
-                                    tickLabel.setTextFill(Color.RED);
-                                } else {
-                                    tickLabel.setTextFill(Color.GRAY);
-                                }
-                            }
-
-                            if (currentTick == 0) {
-                                submarineSound.play();
-                            } else {
-                                bottleSound.play();
-                            }
-                        }
-                    }, 0, 60_000 / (beatsPerMinute * nbOfTicks));
-                } else {
-                    timer.cancel();
-                }
-
-                running = !running;
+                startBeating();
+            } else {
+                timer.cancel();
             }
+            running = !running;
         });
 
         TilePane rootPane = new TilePane(Orientation.VERTICAL);
@@ -92,25 +55,50 @@ public class Metronome2 extends Application {
         rootPane.getChildren().add(controlButton);
         rootPane.getChildren().add(ticksPane);
 
-        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent event) {
-                if (timer != null) {
-                    timer.cancel();
-                }
+        stage.setOnCloseRequest(event -> {
+            if (timer != null) {
+                timer.cancel();
             }
         });
         stage.setTitle("Metronome");
         stage.setScene(new Scene(rootPane, 500, 500));
         stage.show();
     }
-    void parseIntFromTextField (TextField textField) {
-        String beatsPerMinuteText = textField.getText();
-        beatsPerMinute = Integer.parseInt(beatsPerMinuteText);
 
+    void startBeating() {
+        nbOfTicks = parseIntFromTextField(nbOfTicksTextField);
+        beatsPerMinute = parseIntFromTextField(beatsPerMinuteTextField);
+        tickLabels = new ArrayList<>();
+        for (int i = 0; i < nbOfTicks; i++) {
+            tickLabels.add(new Label("●"));
+        }
+        ticksPane.getChildren().setAll(tickLabels);
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                currentTick = (currentTick + 1) % nbOfTicks;
+                for (int i = 0; i < nbOfTicks; i++) {
+                    Label tickLabel = tickLabels.get(i);
+                    if (i <= currentTick) {
+                        tickLabel.setTextFill(Color.RED);
+                    } else {
+                        tickLabel.setTextFill(Color.GRAY);
+                    }
+                }
+
+                if (currentTick == 0) {
+                    funkSound.play();
+                } else {
+                    bottleSound.play();
+                }
+            }
+        }, 0, 60_000 / (beatsPerMinute * nbOfTicks));
     }
 
-
+    int parseIntFromTextField(TextField textField) {
+        String text = textField.getText();
+        return Integer.parseInt(text);
+    }
     public static void main(String[] args) {
         launch();
     }
